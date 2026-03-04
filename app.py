@@ -5,6 +5,7 @@ import numpy as np
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import altair as alt
+import plotly.express as px
 from pathlib import Path
 from preprocessing import build_data
 
@@ -34,7 +35,7 @@ def load_health_gis():
 
     gdf = gpd.read_parquet(gis_path)
 
-    # FIX MAP SCALE (remove AK HI PR)
+    # FIX MAP SCALE
     gdf = gdf[
         ~gdf["STATEFP"].isin(["02","15","72"])
     ]
@@ -97,18 +98,21 @@ order=[
 "Very High"
 ]
 
-df = health_county.dropna(
+df = health_county.copy()
 
-subset=[
-disease_var,
-supply_var,
-"TotalPop18plus",
-"beds_per10k",
-"MedianIncome",
-group_var
+df = df[
+    df[disease_var].notna() &
+    df[supply_var].notna() &
+    df["beds_per10k"].notna() &
+    df["MedianIncome"].notna() &
+    df["TotalPop18plus"].notna() &
+    df[group_var].notna()
 ]
 
-).copy()
+df = df[
+    (df[disease_var] > 0) &
+    (df["beds_per10k"] > 0)
+].copy()
 
 df[group_var]=pd.Categorical(
 df[group_var],
@@ -118,17 +122,13 @@ ordered=True
 
 # FULL MODEL
 X_full=sm.add_constant(
-
-df[[
-
-supply_var,
-"TotalPop18plus",
-"beds_per10k",
-"MedianIncome"
-
-]]
-
-)
+    df[[
+        supply_var,
+        "TotalPop18plus",
+        "beds_per10k",
+        "MedianIncome"
+        ]]
+    )
 
 y_full=df[disease_var]
 
@@ -211,6 +211,16 @@ for g in order:
 
         )
 
+
+st.sidebar.markdown("### Map Layers")
+
+selected_groups = st.sidebar.multiselect(
+    "Select Supply Groups",
+    order,
+    default=order
+)
+
+
 df["predicted_change"]=0
 
 for g,beta in betas.items():
@@ -231,12 +241,10 @@ if mask_np.sum()>0:
     sm.add_constant(
 
     df[[
-
     supply_var,
     "TotalPop18plus",
     "beds_per10k",
     "MedianIncome"
-
     ]]
 
     )
@@ -276,28 +284,98 @@ df["predicted_change"]
 ).sum()/df["TotalPop18plus"].sum()
 
 
-left,right=st.columns([1.2,1])
+left,right=st.columns([1.5,1])
+
 
 with left:
 
     st.subheader("Current Disease Distribution")
 
-    fig,ax=plt.subplots(figsize=(7,5))
-
-    health_gis_proj.plot(
-
-    column=disease_var,
-    cmap=map_cmap,
-    linewidth=0.05,
-    edgecolor="white",
-    legend=True,
-    ax=ax
-
+    selected_groups = st.multiselect(
+        "Select Physician Supply Groups to Display",
+        order,
+        default=order
     )
 
-    ax.axis("off")
+    map_df = health_gis_proj.copy()
 
-    st.pyplot(fig)
+    map_df["GEOID"] = map_df["GEOID"].astype(str)
+
+    map_df["display_value"] = map_df[disease_var]
+
+    map_df.loc[
+        (map_df[disease_var].isna()) | (map_df[disease_var] <= 0),
+        "display_value"
+    ] = None
+
+    map_df.loc[
+        ~map_df[group_var].isin(selected_groups),
+        "display_value"
+    ] = None
+
+    map_df.loc[
+        map_df[group_var].isna(),
+        "display_value"
+    ] = None
+
+    geojson = health_gis_proj.__geo_interface__
+
+    fig = px.choropleth(
+        map_df,
+        geojson=geojson,
+        locations="GEOID",
+        featureidkey="properties.GEOID",
+        color="display_value",
+        color_continuous_scale="YlOrRd",
+        scope="usa",
+        hover_data={
+            "NAME": True,
+            disease_var: True,
+            group_var: True
+        },
+        custom_data=["NAME", group_var]
+    )
+
+    fig.update_traces(
+        hovertemplate=
+        "<b>%{customdata[0]}</b><br>" +
+        "Prevalence: %{z:.2f}%<br>" +
+        "Supply Group: %{customdata[1]}<extra></extra>",
+        marker_line_color="white",
+        marker_line_width=0.2
+    )
+
+    fig.update_geos(
+        scope="usa",
+        fitbounds="locations",
+        visible=False,
+        projection_scale=1.15,
+        domain=dict(x=[0,1], y=[0.15,0.95])
+    )
+
+    fig.update_layout(
+        height=600,
+        margin=dict(t=10, b=0, l=0, r=0),
+        
+        coloraxis_colorbar=dict(
+        title="Prevalence (%)",
+        orientation="h", 
+        len=1,
+        y=1.05,
+        x=0.5,
+        xanchor="center",
+        yanchor="bottom",
+        thickness=18
+        )
+    )
+
+    fig.update_geos(
+        visible=False,
+        scope="usa",
+        domain=dict(x=[0,0.92], y=[0,1])
+        )
+
+    st.plotly_chart(fig, width="stretch")
 
 
 with right:
@@ -385,3 +463,4 @@ f"{total_weighted_change:.3f}"
 st.markdown("### Sample Statistics")
 
 st.dataframe(group_stats_df)
+
