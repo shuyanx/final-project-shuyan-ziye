@@ -8,3 +8,4 @@ altair
 vl-convert-python
 ipython
 requests
+plotly
