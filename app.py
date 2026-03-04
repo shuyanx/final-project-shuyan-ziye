@@ -212,15 +212,6 @@ for g in order:
         )
 
 
-st.sidebar.markdown("### Map Layers")
-
-selected_groups = st.sidebar.multiselect(
-    "Select Supply Groups",
-    order,
-    default=order
-)
-
-
 df["predicted_change"]=0
 
 for g,beta in betas.items():
