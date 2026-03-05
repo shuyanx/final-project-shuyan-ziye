@@ -1224,7 +1224,7 @@ plt.show()
 # Streamlit Dashboard
 
 The dashboard is designed to dynamically show how changes in supply relates with disease prevalence — across different diseases and across counties with different starting supply levels.
-* Link: https://final-project-shuyan-ziye-9q4gvuq4kp8khmtpydn5eb.streamlit.app/
+* Link: https: https://final-project-shuyan-ziye-g5wwnpknculjgrhma5qzpj.streamlit.app/
 
 * Method
 We use OLS regression to quantify the relationship between disease burden and healthcare supply, which then feeds into the scenario simulations. For each disease, we estimate a linear relationship between county-level prevalence $y_i$ and the corresponding specialty physician supply $S_i$, controlling for observable county characteristics — adult population size (18+), hospital bed capacity per 10,000 adults, and median household income — to improve precision and reduce bias from observable differences across counties.
