@@ -1,5 +1,4 @@
-# preprocessing.py
-
+# Set Up
 import pandas as pd
 import geopandas as gpd
 import numpy as np
@@ -9,6 +8,7 @@ import zipfile
 import io
 
 
+# Create The Function for Aggregation
 def aggregate_to_county(df):
 
     df["TotalPop18plus"] = (
@@ -50,7 +50,7 @@ def aggregate_to_county(df):
     return health_county
 
 
-# ACS 2023 Median Household Income
+# Download ACS 2023 Median Household Income
 def download_income_data():
 
     print("Downloading ACS 2023 Median Household Income...")
@@ -94,49 +94,47 @@ def download_income_data():
     return income
 
 
-
+# Load Data and Clean Data
 def build_data():
 
     PROJECT_ROOT = Path(__file__).parent
-
-    # Load Data
     
     health = pd.read_csv(
-        PROJECT_ROOT / "Health.csv"
+        PROJECT_ROOT / "data" / "Health.csv"
     )
 
     health_professional = pd.read_csv(
-        PROJECT_ROOT / "AHRF" / "AHRF2025hp.csv"
+        PROJECT_ROOT / "data" / "AHRF" / "AHRF2025hp.csv"
     )
 
     health_facility = pd.read_csv(
-        PROJECT_ROOT / "AHRF" / "AHRF2025hf.csv"
+        PROJECT_ROOT / "data" / "AHRF" / "AHRF2025hf.csv"
     )
 
-    gis_folder = PROJECT_ROOT / "tl_2025_us_county"
-    shp_path = gis_folder / "tl_2025_us_county.shp"
-    
+    shp_path = PROJECT_ROOT / "data" / "tl_2025_us_county.shp"
+
+    # Only download shapefile if it does not exist
     if not shp_path.exists():
-        print("Downloading Census TIGER county shapefile...") 
+
+        print("Downloading Census TIGER county shapefile...")
+
         url = ("https://www2.census.gov/geo/tiger/TIGER2025/COUNTY/tl_2025_us_county.zip")
+
         r = requests.get(url, timeout=120)
         
         if r.status_code != 200:
             raise RuntimeError("Failed to download GIS data.")
         
-        gis_folder.mkdir(parents=True, exist_ok=True)
-
+        shp_path.parent.mkdir(parents=True, exist_ok=True)
+        
         z = zipfile.ZipFile(io.BytesIO(r.content))
-        z.extractall(gis_folder)
+        z.extractall(shp_path.parent)
         
         print("GIS downloaded.")
     
     counties = gpd.read_file(shp_path)
 
     income = download_income_data()
-
-
-    # Clean Data
 
     health["CountyFIPS"] = (
         health["CountyFIPS"]
@@ -217,14 +215,10 @@ def build_data():
         }
     )
 
-
-    # Aggregate
-
+    # Run The Function for Aggregation
     health_county = aggregate_to_county(health)
 
-
-    # Merge
-
+    # Merge DataSets
     health_county = health_county.merge(
         health_professional,
         left_on="CountyFIPS",
@@ -245,13 +239,12 @@ def build_data():
         how="left"
     )
 
-
-    # Add Columns
+    # Add Columns Needed
     health_county["physicians_per10k"] = np.where(
-    health_county["physicians_total"] > 0,
-    health_county["physicians_total"] /
-    health_county["TotalPop18plus"] * 10000,
-    np.nan
+        health_county["physicians_total"] > 0,
+        health_county["physicians_total"] /
+        health_county["TotalPop18plus"] * 10000,
+        np.nan
     )
     
     health_county["general_internal_med_per10k"] = np.where(
@@ -259,41 +252,42 @@ def build_data():
         health_county["general_internal_med"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["cardiologists_per10k"] = np.where(
         health_county["physicians_total"] > 0,
         health_county["cardiologists"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["psych_per10k"] = np.where(
         health_county["physicians_total"] > 0,
         health_county["psychiatrists"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["beds_per10k"] = np.where(
         health_county["beds_total"] > 0,
         health_county["beds_total"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["beds_acute_per10k"] = np.where(
         health_county["beds_acute"] > 0,
         health_county["beds_acute"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
+
     health_county["beds_icu_per10k"] = np.where(
         health_county["beds_icu"] > 0,
         health_county["beds_icu"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["pop_quintile"] = pd.qcut(
         np.log1p(health_county["TotalPop18plus"]),
@@ -304,35 +298,29 @@ def build_data():
             "Medium",
             "Large",
             "Very Large"
-            ]
-        )
-    
-    health_county["physicians_cap40"] = np.where(
-        health_county["physicians_per10k"] > 40,
-        40,
-        health_county["physicians_per10k"]
-        )
-    
-    health_county["beds_cap40"] = np.where(
-        health_county["beds_per10k"] > 40,
-        40,
-        health_county["beds_per10k"]
-        )
-    
+        ]
+    )
 
+    # Fix dtype warning by initializing column as object
     def create_supply_groups(df, supply_var, new_col_name):
-        df[new_col_name] = np.nan
+
+        df[new_col_name] = pd.Series(index=df.index, dtype="object")
+
         zero_mask = df[supply_var] == 0
+
         df.loc[zero_mask, new_col_name] = "No Providers"
+
         nonzero = df.loc[
             ~zero_mask & df[supply_var].notna(),
             supply_var
-            ]
+        ]
+
         df.loc[nonzero.index, new_col_name] = pd.qcut(
             nonzero,
             5,
             labels=["Very Low", "Low", "Medium", "High", "Very High"]
-            )
+        )
+
         df[new_col_name] = pd.Categorical(
             df[new_col_name],
             categories=[
@@ -342,41 +330,40 @@ def build_data():
                 "Medium",
                 "High",
                 "Very High"
-                ],
-                ordered=True
-                )
+            ],
+            ordered=True
+        )
         
     create_supply_groups(
         health_county,
         "general_internal_med_per10k",
         "diabetes_supply_group"
-        )
+    )
     
     create_supply_groups(
         health_county,
         "cardiologists_per10k",
         "chd_supply_group"
-        )
+    )
     
     create_supply_groups(
         health_county,
         "psych_per10k",
         "depression_supply_group"
-        )
-
+    )
 
     health_gis = health_county.merge(
         counties,
         left_on="CountyFIPS",
         right_on="GEOID",
         how="inner"
-        )
+    )
 
     health_gis = gpd.GeoDataFrame(
         health_gis,
         geometry="geometry",
         crs=counties.crs
-        )
+    )
     
     
     output = PROJECT_ROOT / "data" / "cleaned_data.csv"
