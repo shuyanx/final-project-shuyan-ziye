@@ -509,12 +509,7 @@ def display_altair_png(chart, scale=2):
 # Import Cleaned Dataset
 
 # Path to cleaned dataset
-data_path = Path("data/cleaned_data.csv")
-
-# If cleaned file does not exist, run preprocessing
-if not data_path.exists():
-    from preprocessing import build_data
-    build_data()
+data_path = Path("../data/cleaned_data.csv")
 
 # Load cleaned dataset
 health_county = pd.read_csv(
@@ -1076,7 +1071,7 @@ On the supply side, the geographic disparities are striking. Physician density a
 
 # Geo Plots
 
-health_gis = gpd.read_parquet("data/cleaned_data_gis.parquet")
+health_gis = gpd.read_parquet("../data/cleaned_data_gis.parquet")
 health_gis_proj = health_gis.to_crs(epsg=5070)
 
 health_gis_proj = health_gis_proj[
