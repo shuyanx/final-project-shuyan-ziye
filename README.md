@@ -1,15 +1,14 @@
-# Final Project
+# Health Burden & Healthcare Resource Distribution
+## Does healthcare supply relate to disease prevalence across U.S. counties?
+Data and Programming II Final Project (Winter 2026)
 
 Team members:
 Shuyan Xin  Ziye Yang
 
-Qmd:
+Qmd: PROJECT_ROOT / "code" / "write up.qmd"
 
-Streamlit dashboard:
+Streamlit dashboard: https://final-project-shuyan-ziye-g5wwnpknculjgrhma5qzpj.streamlit.app/
 
-# Health Burden & Healthcare Resource Distribution
-# Does healthcare supply relate to disease prevalence across U.S. counties?
-Data and Programming II Final Project (Spring 2025)
 
 These research questions emerged from a shared interest in health equity and the geographic distribution of medical resources. While searching for data, we encountered a county-level disease burden dataset capturing prevalence rates of various chronic conditions across different regions. This naturally led us to ask: do differences in regional health outcomes relate to the availability of healthcare resources?
 
@@ -47,7 +46,5 @@ Following feedback received after our March 3rd presentation, we made targeted i
 - Enhanced map contrast: We adopted higher-contrast color schemes and cleaner map layouts to make spatial comparisons — such as high-burden/low-resource regions or cross-county resource gaps — more immediately legible. We also added an interactive selector in the Streamlit map view allowing users to dynamically choose a physician supply tier, which highlights the corresponding counties on the map and reveals its disease prevalence with regional clustering patterns for the chosen disease.
 - Interpretive depth: In response to questions raised during the presentation, we expanded our discussion and interpretation of key findings in the write-up, providing additional context for the relationships observed in the data.
 
-To run the project locally, clone the repository to your machine. Navigate to the project folder, then run the preprocessing script first to download and generate the required data locally. Once preprocessing is complete, launch the Streamlit app by running streamlit run app.py in your terminal and opening the generated local URL in your browser to interact with the dashboard and explore our findings.
-
-
-Disclosure: All ideas and analysis in this project are our own; language and phrasing were partly refined with the assistance of AI tools.
+To run the project locally, clone the repository to your laptop. Cd to the project folder, then run the preprocessing script first to download and generate the required data locally. 
+For Streamlit app: Once preprocessing is complete, launch the Streamlit app by running /underline{streamlit run app.py} in your terminal or use the [link](https://final-project-shuyan-ziye-g5wwnpknculjgrhma5qzpj.streamlit.app/) to interact with the dashboard and explore our findings.
