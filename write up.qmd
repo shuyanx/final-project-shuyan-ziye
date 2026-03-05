@@ -7,70 +7,53 @@ format:
   pdf:
     pdf-engine: xelatex
     fontsize: 9pt
-    geometry: margin=1.5cm
-
-    echo: false
-    output: false
-    warning: false
-    message: false
+    geometry: margin=1.3cm
 
     include-in-header:
-        text: |
-            % --- Code blocks line wrapping ---
-            \usepackage{fvextra}
-            \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
-            \RecustomVerbatimEnvironment{verbatim}{Verbatim}{
-            showspaces=false,
-            showtabs=false,
-            breaksymbolleft={},
-            breaklines
-            }
+      text: |
+        % --- Code blocks line wrapping ---
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
 
-            % --- Compact title block WITHOUT titling.sty (fixed) ---
-            \setkomafont{title}{\normalfont\normalsize\bfseries}
-            \setkomafont{author}{\normalfont\small}
-            \setkomafont{date}{\normalfont\small}
+        % --- Slightly tighter spacing ---
+        \setlength{\parskip}{3pt}
+        \setlength{\textfloatsep}{8pt}
+        \setlength{\floatsep}{8pt}
+        \setlength{\intextsep}{8pt}
 
-            \makeatletter
-            \renewcommand*{\maketitle}{%
-            \begin{center}
-                {\usekomafont{title}\@title\par}
-                \vspace{-0.6em}
-                {\usekomafont{author}\@author\par}
-                \vspace{-0.6em}
-                {\usekomafont{date}\@date\par}
-            \end{center}
-            \vspace{-1.5em}
-            }
-            \makeatother
+        % --- Compact title block ---
+        \setkomafont{title}{\normalfont\normalsize\bfseries}
+        \setkomafont{author}{\normalfont\small}
+        \setkomafont{date}{\normalfont\small}
 
-  html:
-    self-contained: true
+        \makeatletter
+        \renewcommand*{\maketitle}{%
+        \begin{center}
+            {\usekomafont{title}\@title\par}
+            \vspace{-0.6em}
+            {\usekomafont{author}\@author\par}
+            \vspace{-0.6em}
+            {\usekomafont{date}\@date\par}
+        \end{center}
+        \vspace{-1.2em}
+        }
+        \makeatother
 
 execute:
-  enabled: false
+  echo: false
+  warning: false
+  message: false
 ---
 
-## 1 Background and Research Motivation
+
+### Background and Research Motivation
 As of 2023, many U.S. counties continue to face significant gaps in healthcare capacity, while chronic disease burdens remain persistently high. Programs like the National Health Service Corps (NHSC) try to address this by placing clinicians in underserved areas through scholarships and loan repayment incentives. But with limited placements available, these are exactly the kinds of questions that matter for programs like NHSC: where does additional supply actually matter most, and if resources are directed toward certain counties, how large is the expected impact, and does that look different depending on a county's starting supply conditions?
 
-## 2 Data and Methodology
-
-We combined three county-level datasets to build as comprehensive a picture as possible of each county's health burden, clinical capacity, and demographic baseline. All three datasets were last updated in 2025 but reflect 2023 figures, giving us a consistent cross-sectional snapshot across sources.
-
-1. **Health Burden Estimates (from [CDC](https://data.cdc.gov/browse?category=500+Cities+%26+Places&q=2025&sortBy=relevance&tags=places&pageSize=20)):** This dataset provides estimates of chronic disease prevalence and related health measures at U.S. county level. It was also our starting point: looking at the variation in disease prevalence across counties made us curious about what factors might be driving those differences, which led us to seek out the other two datasets.
-2. **Health Workforce and Facility Capacity (from [HRSA](https://data.hrsa.gov/data/download?)):** This dataset includes physician counts by specialty and hospital bed capacity at the county level.
-3. **Population and Demographic Baselines (from [U.S. Census / ACS 5-year estimates](https://www.census.gov/en.html)):** This dataset includes adult population and median income, which we used to make our prevalence predictions more robust in regression.
-
-### 2.1 Data Preprocessing
-
-The raw data files were large and complex, so we did two main things to make them workable.
-
-First, we streamlined each file by removing irrelevant or redundant fields — things like geographic micro-identifiers, location strings, and uncertainty/confidence interval columns — keeping only the core county-level information we needed. For disease outcomes, we focused on three representative conditions: diabetes as a primary care condition, coronary heart disease (CHD) as a specialty-intensive condition, and depression as a mental health condition with distinct supply dynamics. These were chosen to be illustrative and clear. On the supply and demographic side, we retained adult population baselines, county identifiers, overall physician availability, the most relevant specialties, hospital bed capacity, and median income as basic socioeconomic control. Once the files were trimmed down, we merged all three datasets at county level using county identifiers to produce a single unified dataset for analysis.
-
-Second, we created a set of analysis-ready variables to support our visualization and regressions. To account for population size differences across counties, we converted raw prevalence figures into population-weighted county estimates and standardized all supply measures into "per 10,000 adults (18+)" units for comparison. We also built supply tiers by quintiles (No providers -> High) to clearly capture different resource-level counties, which made the OLS regressions easier to interpret.
-
 ```{python}
+#| echo: false
+#| output: false
+
+# Set Up
 import pandas as pd
 import geopandas as gpd
 from pathlib import Path
@@ -82,7 +65,6 @@ import altair as alt
 import numpy as np
 import time
 import statsmodels.api as sm
-import streamlit as st
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
@@ -91,9 +73,27 @@ alt.data_transformers.disable_max_rows()
 
 data_path = "data/external"
 ```
+  
 
+# Data and Methodology
+We combined four county-level datasets to build as comprehensive a picture as possible of each county's health burden, clinical capacity, and demographic baseline.
+(1) **Health Burden Estimates (from [CDC](https://data.cdc.gov/browse?category=500+Cities+%26+Places&q=2025&sortBy=relevance&tags=places&pageSize=20)):** This dataset provides estimates of chronic disease prevalence and related health measures at U.S. county level. It was also our starting point: looking at the variation in disease prevalence across counties made us curious about what factors might be driving those differences, which led us to seek out the other three datasets.
+(2) **Health Workforce and Facility Capacity (from [HRSA](https://data.hrsa.gov/data/download?)):** This dataset includes physician counts by specialty and hospital bed capacity at the county level.
+(3) **Population and Demographic Baselines (from [U.S. Census / ACS 5-year estimates](https://www.census.gov/en.html)):** This dataset includes adult population and median income, which we used to make our prevalence predictions more robust in regression.
+(4) Household Income (from U.S. Census / ACS): Median household income at the county level, obtained through the Census API, which we include as a socioeconomic control variable in the regression analysis.
+All four datasets were last updated in 2025 but reflect 2023 figures, giving us a consistent cross-sectional snapshot across sources.
 
+# Data Preprocessing
+The raw data files were large and complex, so we did two main things to make them workable. First, we streamlined each file by removing irrelevant or redundant fields including geographic micro-identifiers, location strings, and uncertainty/confidence interval columns, and keep only the core county-level information we needed. For disease outcomes, we focused on three representative conditions: diabetes as a primary care condition, coronary heart disease (CHD) as a specialty-intensive condition, and depression as a mental health condition with distinct supply dynamics. These were chosen to be illustrative and clear. On the supply and demographic side, we retained adult population baselines, county identifiers, overall physician availability, the most relevant specialties, hospital bed capacity, and median income as basic socioeconomic control. Once the files were trimmed down, we merged all four datasets at county level using county identifiers to produce a single unified dataset for analysis.  
+
+Second, we created a set of analysis-ready variables to support our visualization and regressions. To account for population size differences across counties, we converted raw prevalence figures into population-weighted county estimates and standardized all supply measures into "per 10,000 adults (18+)" units for comparison. We also built supply tiers by quintiles (No providers -> High) to clearly capture different resource-level counties, which made the OLS regressions easier to interpret.
+  
 ```{python}
+#| echo: false
+#| output: false
+
+# Prepocessing
+
 # Create The Function for Aggregation
 def aggregate_to_county(df):
 
@@ -183,35 +183,38 @@ def download_income_data():
 # Load Data and Clean Data
 def build_data():
 
-    PROJECT_ROOT = Path(__file__).parent
+    PROJECT_ROOT = Path(".")
     
     health = pd.read_csv(
-        PROJECT_ROOT / "Health.csv"
+        PROJECT_ROOT / "data" / "Health.csv"
     )
 
     health_professional = pd.read_csv(
-        PROJECT_ROOT / "AHRF" / "AHRF2025hp.csv"
+        PROJECT_ROOT / "data" / "AHRF" / "AHRF2025hp.csv"
     )
 
     health_facility = pd.read_csv(
-        PROJECT_ROOT / "AHRF" / "AHRF2025hf.csv"
+        PROJECT_ROOT / "data" / "AHRF" / "AHRF2025hf.csv"
     )
 
-    gis_folder = PROJECT_ROOT / "tl_2025_us_county"
-    shp_path = gis_folder / "tl_2025_us_county.shp"
-    
+    shp_path = PROJECT_ROOT / "data" / "tl_2025_us_county.shp"
+
+    # Only download shapefile if it does not exist
     if not shp_path.exists():
-        print("Downloading Census TIGER county shapefile...") 
+
+        print("Downloading Census TIGER county shapefile...")
+
         url = ("https://www2.census.gov/geo/tiger/TIGER2025/COUNTY/tl_2025_us_county.zip")
+
         r = requests.get(url, timeout=120)
         
         if r.status_code != 200:
             raise RuntimeError("Failed to download GIS data.")
         
-        gis_folder.mkdir(parents=True, exist_ok=True)
-
+        shp_path.parent.mkdir(parents=True, exist_ok=True)
+        
         z = zipfile.ZipFile(io.BytesIO(r.content))
-        z.extractall(gis_folder)
+        z.extractall(shp_path.parent)
         
         print("GIS downloaded.")
     
@@ -324,10 +327,10 @@ def build_data():
 
     # Add Columns Needed
     health_county["physicians_per10k"] = np.where(
-    health_county["physicians_total"] > 0,
-    health_county["physicians_total"] /
-    health_county["TotalPop18plus"] * 10000,
-    np.nan
+        health_county["physicians_total"] > 0,
+        health_county["physicians_total"] /
+        health_county["TotalPop18plus"] * 10000,
+        np.nan
     )
     
     health_county["general_internal_med_per10k"] = np.where(
@@ -335,41 +338,42 @@ def build_data():
         health_county["general_internal_med"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["cardiologists_per10k"] = np.where(
         health_county["physicians_total"] > 0,
         health_county["cardiologists"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["psych_per10k"] = np.where(
         health_county["physicians_total"] > 0,
         health_county["psychiatrists"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["beds_per10k"] = np.where(
         health_county["beds_total"] > 0,
         health_county["beds_total"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["beds_acute_per10k"] = np.where(
         health_county["beds_acute"] > 0,
         health_county["beds_acute"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
+
     health_county["beds_icu_per10k"] = np.where(
         health_county["beds_icu"] > 0,
         health_county["beds_icu"] /
         health_county["TotalPop18plus"] * 10000,
         np.nan
-        )
+    )
     
     health_county["pop_quintile"] = pd.qcut(
         np.log1p(health_county["TotalPop18plus"]),
@@ -380,22 +384,29 @@ def build_data():
             "Medium",
             "Large",
             "Very Large"
-            ]
-        )
+        ]
+    )
 
+    # Fix dtype warning by initializing column as object
     def create_supply_groups(df, supply_var, new_col_name):
-        df[new_col_name] = np.nan
+
+        df[new_col_name] = pd.Series(index=df.index, dtype="object")
+
         zero_mask = df[supply_var] == 0
+
         df.loc[zero_mask, new_col_name] = "No Providers"
+
         nonzero = df.loc[
             ~zero_mask & df[supply_var].notna(),
             supply_var
-            ]
+        ]
+
         df.loc[nonzero.index, new_col_name] = pd.qcut(
             nonzero,
             5,
             labels=["Very Low", "Low", "Medium", "High", "Very High"]
-            )
+        )
+
         df[new_col_name] = pd.Categorical(
             df[new_col_name],
             categories=[
@@ -405,41 +416,40 @@ def build_data():
                 "Medium",
                 "High",
                 "Very High"
-                ],
-                ordered=True
-                )
+            ],
+            ordered=True
+        )
         
     create_supply_groups(
         health_county,
         "general_internal_med_per10k",
         "diabetes_supply_group"
-        )
+    )
     
     create_supply_groups(
         health_county,
         "cardiologists_per10k",
         "chd_supply_group"
-        )
+    )
     
     create_supply_groups(
         health_county,
         "psych_per10k",
         "depression_supply_group"
-        )
-
+    )
 
     health_gis = health_county.merge(
         counties,
         left_on="CountyFIPS",
         right_on="GEOID",
         how="inner"
-        )
+    )
 
     health_gis = gpd.GeoDataFrame(
         health_gis,
         geometry="geometry",
         crs=counties.crs
-        )
+    )
     
     
     output = PROJECT_ROOT / "data" / "cleaned_data.csv"
@@ -462,8 +472,12 @@ if __name__ == "__main__":
     build_data()
 ```
 
-
 ```{python}
+#| echo: false
+#| output: false
+
+# Improve Graph Resolution
+
 import tempfile 
 from IPython.display import SVG, display, Image
 import vl_convert as vlc
@@ -488,8 +502,12 @@ def display_altair_png(chart, scale=2):
         display(Image(filename=tmp.name))
 ```
 
-
 ```{python}
+#| echo: false
+#| output: false
+
+# Import Cleaned Dataset
+
 # Path to cleaned dataset
 data_path = Path("data/cleaned_data.csv")
 
@@ -509,31 +527,20 @@ health_county.head()
 len(health_county)
 ```
 
+# Approach
+Our presentation is in two stages. We start with static visualizations to establish a bigger landscape, which shows county-level patterns in disease burden and healthcare supply across the U.S., along with correlations between them. From there, we move into a dynamic & interactive Streamlit dashboard for users, mainly policy makers at programs like NHSC. Using selectbox and sliders, they can adjust different supply allocation scenarios for each disease case and see the estimated direction and magnitude of impact for set of counties.  
 
-## 3 Approach
-Our presentation is in two stages. We start with static visualizations to establish a bigger landscape, which shows county-level patterns in disease burden and healthcare supply across the U.S., along with correlations between them. From there, we move into an dynamic & interactive Streamlit dashboard for users, mainly policy makers at programs like NHSC. Using selectbox and sliders, they can adjust different supply allocation scenarios for each disease case and see the estimated direction and magnitude of impact for set of counties.
-
-### 3.1 Descriptive Patterns
-
-(1) Disease Burden
-
-The diseases show different prevalence distributions across counties. CHD has the lowest overall prevalence but is the most concentrated, depression has the highest prevalence but is the most dispersed, and diabetes in between. These differences reflect both the underlying epidemiology of each condition and how each tends to be diagnosed. 
-
-* CHD is a clearly defined, organically-based chronic condition that affects a smaller share of population. Its clinical diagnosis is standardized, and severe cases typically enter emergency systems, meaning fewer cases go undetected. As a result, most counties cluster around similar rates — low prevalence, low spread.
-
-* Depression works very differently. Whether someone gets diagnosed depends heavily on their willingness to seek care, access to mental health resources, and broader socioeconomic pressures — none of which are evenly distributed across counties. The underlying occurrence of mental health conditions is also higher than severe conditions like CHD. So what we observe across counties is a combination of real variation in health burden and variation in how much of that burden gets captured diagnostically, which together produce a much wider spread.
-
+# Descriptive Patterns
+(1) Disease Burden  
+* The diseases show different prevalence distributions across counties. CHD has the lowest overall prevalence but is the most concentrated, depression has the highest prevalence but is the most dispersed, and diabetes in between.
+* These differences reflect both the underlying epidemiology of each condition and how each tends to be diagnosed. CHD is a clearly defined, organically-based chronic condition that affects a smaller share of population. Its clinical diagnosis is standardized, and severe cases typically enter emergency systems, meaning fewer cases go undetected. As a result, most counties cluster around similar rates with low prevalence and low spread.
+* Depression works very differently. Whether someone gets diagnosed depends heavily on their willingness to seek care, access to mental health resources, and broader socioeconomic pressures, none of which are evenly distributed across counties. The underlying occurrence of mental health conditions is also higher than severe conditions like CHD. So what we observe across counties is a combination of real variation in health burden and variation in how much of that burden gets captured diagnostically, which together produce a much wider spread.
 * Diabetes falls in the middle. It is meaningfully shaped by lifestyle and socioeconomic factors like obesity and poverty, but it also has fairly standardized screening and diagnostic criteria compared to the other two. That combination produces moderate county-level variation — more dispersed than CHD, but more structured than depression.
 
-::: {layout-ncol=2}
-
-![](1.png){height=1.2in fig-asp=1.05}
-![](1-2.png){height=1.2in fig-asp=3.27}
-
-:::
-
-# Descriptive Statistics
 ```{python}
+#| echo: false
+#| output: false
+
 prevalence_df = health_county.melt(
     id_vars=["CountyName"],
     value_vars=[
@@ -566,7 +573,6 @@ prevalence = alt.Chart(prevalence_df).mark_boxplot().encode(
         )
     )
 ).properties(
-
     width=400,
     height=400,
     title="Disease Prevalence Descriptive Statistics"
@@ -576,6 +582,9 @@ prevalence
 ```
 
 ```{python}
+#| echo: false
+#| output: true
+
 diabetes = alt.Chart(health_county).mark_bar().encode(
     x = alt.X("DIABETES_CrudePrev:Q", 
     bin=alt.Bin(step=2), 
@@ -583,7 +592,7 @@ diabetes = alt.Chart(health_county).mark_bar().encode(
     scale=alt.Scale(domain=[0, 36]),
     axis=alt.Axis(values=list(range(0,36,2)))),
     y = alt.Y("count()", title="Number of Counties", scale=alt.Scale(domain=[0, 1200]))
-).properties(width=150, height=150)
+).properties(width=100, height=100)
 
 chd = alt.Chart(health_county).mark_bar().encode(
     x = alt.X("CHD_CrudePrev:Q", 
@@ -592,7 +601,7 @@ chd = alt.Chart(health_county).mark_bar().encode(
     scale=alt.Scale(domain=[0, 36]),
     axis=alt.Axis(values=list(range(0,36,2)))),
     y = alt.Y("count()", title="Number of Counties", scale=alt.Scale(domain=[0, 1200]))
-).properties(width=150, height=150)
+).properties(width=100, height=100)
 
 depression = alt.Chart(health_county).mark_bar().encode(
     x = alt.X("DEPRESSION_CrudePrev:Q", 
@@ -601,19 +610,18 @@ depression = alt.Chart(health_county).mark_bar().encode(
     scale=alt.Scale(domain=[0, 36]),
     axis=alt.Axis(values=list(range(0,36,2)))),
     y = alt.Y("count()", title="Number of Counties", scale=alt.Scale(domain=[0, 1200]))
-).properties(width=150, height=150)
+).properties(width=100, height=100)
 
 diabetes | chd | depression
 ```
 
-(2) Supply
-
-Both physician and hospital bed supply are right-skewed: most counties cluster at lower supply levels, while a small number of counties have extremely high capacity, so we capped at 40.
-
-![](2-1.png){height=1.2in fig-asp=1.51}
-
+(2) Supply  
+Both physician and hospital bed supply are right-skewed: most counties cluster at lower supply levels, while a small number of counties have extremely high capacity, so we capped at 50.
 
 ```{python}
+#| echo: false
+#| output: true
+
 bins = [0,5,10,15,20,25,30,35,40,45,50,np.inf]
 order = ["0–5","5–10","10–15","15–20","20–25","25–30","30–35","35–40","40–45","45–50","≥50"]
 labels = order
@@ -646,7 +654,7 @@ physicians_coverage = alt.Chart(df).mark_bar().encode(
         scale=alt.Scale(domain=[0,700]),
         axis=alt.Axis(tickCount=10)
     )
-)
+).properties(width=100, height=150)
 
 beds_coverage = alt.Chart(df).mark_bar().encode(
     x=alt.X(
@@ -660,34 +668,20 @@ beds_coverage = alt.Chart(df).mark_bar().encode(
         scale=alt.Scale(domain=[0,700]),
         axis=alt.Axis(tickCount=10)
     )
-)
+).properties(width=100, height=150)
 
 physicians_coverage | beds_coverage
 ```
 
-(3) Relationship Between Supply and Disease Prevalence
-
-When we look at how supply relates to prevalence, a pattern emerges: only the directly relevant specialty physician supply shows a negative association with its corresponding disease. To make this easier to see, we grouped counties into six supply tiers — a "No Providers" group (zero supply) and five quintiles among non-zero counties, ranging from Very Low to Very High.
-
+(3) Relationship Between Supply and Disease Prevalence  
+Then we look at how supply relates to prevalence. To make this easier to see, we grouped counties into six supply tiers — a "No Providers" group (zero supply) and five quintiles among non-zero counties, ranging from Very Low to Very High.
 The results differ across diseases. Diabetes shows the clearest pattern, with a decline in prevalence as specialty supply increases. CHD shows differences at the extremes but relatively little separation across the middle tiers. Depression shows the most overlap across tiers, suggesting the weakest and least consistent association between supply and prevalence — which lines up with what we described earlier about how diagnosed depression is shaped by factors beyond clinical access alone.
 
-```{=latex}
-\noindent
-\begin{minipage}[t]{0.247\linewidth}\centering
-\includegraphics[width=\linewidth,height=1in,keepaspectratio]{3-1.png}
-\end{minipage}\hspace{0.001\linewidth}
-\begin{minipage}[t]{0.247\linewidth}\centering
-\includegraphics[width=\linewidth,height=1in,keepaspectratio]{3-2.png}
-\end{minipage}\hspace{0.001\linewidth}
-\begin{minipage}[t]{0.247\linewidth}\centering
-\includegraphics[width=\linewidth,height=1in,keepaspectratio]{3-3.png}
-\end{minipage}\hspace{0.001\linewidth}
-\begin{minipage}[t]{0.247\linewidth}\centering
-\includegraphics[width=\linewidth,height=1in,keepaspectratio]{3-4.png}
-\end{minipage}
-```
-
 ```{python}
+#| echo: false
+#| output: false
+
+# Correlation Analysis
 model_map = {
     "CHD_CrudePrev": [
         "physicians_per10k",
@@ -781,6 +775,10 @@ heatmap
 ```
 
 ```{python}
+#| echo: false
+#| output: false
+
+# Diabetes
 diabetes_df = health_county.dropna(
     subset=["diabetes_supply_group","DIABETES_CrudePrev"]
 ).copy()
@@ -862,15 +860,20 @@ trend = alt.Chart(diabetes_df).transform_calculate(
 diabetes_plot = (ci + points + trend).encode(
     y=alt.Y(title="Mean Diabetes Prevalence (%)")
 ).properties(
-    width=400,
-    height=250,
+    width=200,
+    height=150,
     title="Diabetes Prevalence by Internal Medicine Physician Supply"
 )
 
 diabetes_plot
 ```
 
+
 ```{python}
+#| echo: false
+#| output: false
+
+# CHD
 chd_df = health_county.dropna(
     subset=["chd_supply_group","CHD_CrudePrev"]
 ).copy()
@@ -952,15 +955,19 @@ trend = alt.Chart(chd_df).transform_calculate(
 chd_plot = (ci + points + trend).encode(
     y=alt.Y(title="Mean CHD Prevalence (%)")
 ).properties(
-    width=400,
-    height=250,
-    title="CHD Prevalence by Internal Medicine Physician Supply"
+    width=200,
+    height=150,
+    title="CHD Prevalence by Cardiologist Supply"
 )
 
 chd_plot
 ```
 
 ```{python}
+#| echo: false
+#| output: false
+
+# Depression
 depression_df = health_county.dropna(
     subset=["depression_supply_group","DEPRESSION_CrudePrev"]
 ).copy()
@@ -1042,32 +1049,32 @@ trend = alt.Chart(depression_df).transform_calculate(
 depression_plot = (ci + points + trend).encode(
     y=alt.Y(title="Mean Depression Prevalence (%)")
 ).properties(
-    width=400,
-    height=250,
-    title="Depression Prevalence by Internal Medicine Physician Supply"
+    width=200,
+    height=150,
+    title="Depression Prevalence by Psychiatrist Supply"
 )
 
 depression_plot
 ```
 
+```{python}
+#| echo: false
+#| output: true
 
-(4) Geographical Distribution
+(diabetes_plot | chd_plot) & depression_plot
+```
 
+(4) Geographical Distribution  
 Despite a small number of counties with missing data, there are also regional patterns. Diabetes and CHD both cluster heavily in parts of the South, consistent with well-documented regional disparities in chronic disease burden. Depression, while more widespread geographically, is still regionally uneven rather than uniformly distributed.
 On the supply side, the geographic disparities are striking. Physician density and hospital bed capacity are heavily concentrated in urban and metropolitan areas, leaving large portions of rural counties — many of which already carry higher disease burdens — with very limited clinical resources.
 
-```{=latex}
-\noindent
-\begin{minipage}[t]{0.49\linewidth}\centering
-\includegraphics[width=\linewidth,height=1in,keepaspectratio]{4-1.png}
-\end{minipage}\hspace{0.002\linewidth}
-\begin{minipage}[t]{0.49\linewidth}\centering
-\includegraphics[width=\linewidth,height=1in,keepaspectratio]{4-2.png}
-\end{minipage}
-```
-
 ```{python}
+#| echo: false
+#| output: true
+
 %matplotlib inline
+
+# Geo Plots
 
 health_gis = gpd.read_parquet("data/cleaned_data_gis.parquet")
 health_gis_proj = health_gis.to_crs(epsg=5070)
@@ -1079,16 +1086,18 @@ health_gis_proj = health_gis_proj[
 
 # Plots of Disease Distribution
 fig, axes = plt.subplots(1, 3, figsize=(18,6))
+disease_bins = [0,5,10,15,20,25,30,35]
 
 # Diabetes
 health_gis_proj.plot(
     column="DIABETES_CrudePrev",
-    cmap="Reds",
+    cmap="YlOrRd",
+    scheme="user_defined",
+    classification_kwds={"bins": disease_bins},
     linewidth=0.1,
     edgecolor="white",
-    legend=True,
-    ax=axes[0],
-    legend_kwds={"label":"Diabetes Prevalence (%)"}
+    legend=False,
+    ax=axes[0]
 )
 axes[0].set_title("Diabetes")
 axes[0].axis("off")
@@ -1096,12 +1105,13 @@ axes[0].axis("off")
 # CHD
 health_gis_proj.plot(
     column="CHD_CrudePrev",
-    cmap="Oranges",
+    cmap="YlOrRd",
+    scheme="user_defined",
+    classification_kwds={"bins": disease_bins},
     linewidth=0.1,
     edgecolor="white",
-    legend=True,
-    ax=axes[1],
-    legend_kwds={"label":"CHD Prevalence (%)"}
+    legend=False,
+    ax=axes[1]
 )
 axes[1].set_title("CHD")
 axes[1].axis("off")
@@ -1109,30 +1119,52 @@ axes[1].axis("off")
 # Depression
 health_gis_proj.plot(
     column="DEPRESSION_CrudePrev",
-    cmap="Purples",
+    cmap="YlOrRd",
+    scheme="user_defined",
+    classification_kwds={"bins": disease_bins},
     linewidth=0.1,
     edgecolor="white",
-    legend=True,
-    ax=axes[2],
-    legend_kwds={"label":"Depression Prevalence (%)"}
+    legend=False,
+    ax=axes[2]
 )
 axes[2].set_title("Depression")
 axes[2].axis("off")
+
+# Create a shared legend
+import matplotlib as mpl
+
+cmap = mpl.cm.Reds
+norm = mpl.colors.BoundaryNorm(disease_bins, cmap.N)
+
+sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])
+
+plt.subplots_adjust(bottom=-0.05)
+
+cbar = fig.colorbar(
+    sm,
+    ax=axes,
+    orientation="horizontal",
+    fraction=0.05,
+    pad=0.08
+)
+
+cbar.set_label("Disease Prevalence (%)")
 
 plt.tight_layout()
 plt.show()
 
 
 # Plots of Medical Supplies
-fig, axes = plt.subplots(1, 2, figsize=(20,7))
-bins = [0,5,10,20,30,40, 50,np.inf]
-labels = ["0–5","5–10","10–20","20–30","30–40","40-50", ">=50"]
+fig, axes = plt.subplots(1, 2, figsize=(10,5))
+supply_bins = [0,5,10,20,30,40, 50,np.inf]
+supply_labels = ["0–5","5–10","10–20","20–30","30–40","40-50", ">=50"]
 
 # Physicians Supplies
 health_gis_proj["physician_cat"] = pd.cut(
     health_gis_proj["physicians_per10k"],
-    bins=bins,
-    labels=labels,
+    bins=supply_bins,
+    labels=supply_labels,
     include_lowest=True
 )
 
@@ -1147,25 +1179,26 @@ health_gis_proj.plot(
         "title":"Physicians per 10k Adults",
         "loc":"lower right",
         "frameon":True,
-        "fontsize":8,
-        "title_fontsize":9
+        "fontsize":5,
+        "title_fontsize":6,
+        "markerscale":0.7
     }
 )
 
-axes[0].set_title("County-Level Physician Supply (per 10k Adults)", fontsize=16)
+axes[0].set_title("County-Level Physician Supply (per 10k Adults)", fontsize=8)
 axes[0].axis("off")
 
 # Beds Supplies
 health_gis_proj["bed_cat"] = pd.cut(
     health_gis_proj["beds_per10k"],
-    bins=bins,
-    labels=labels,
+    bins=supply_bins,
+    labels=supply_labels,
     include_lowest=True
 )
 
 health_gis_proj.plot(
     column="bed_cat",
-    cmap="Greens",
+    cmap="Blues",
     linewidth=0.1,
     edgecolor="white",
     legend=True,
@@ -1174,51 +1207,37 @@ health_gis_proj.plot(
         "title":"Beds per 10k Adults",
         "loc":"lower right",
         "frameon":True,
-        "fontsize":8,
-        "title_fontsize":9
+        "fontsize":5,
+        "title_fontsize":6,
+        "markerscale":0.7
     }
 )
 
-axes[1].set_title("County-Level Bed Supply (per 10k Adults)", fontsize=16)
+axes[1].set_title("County-Level Bed Supply (per 10k Adults)", fontsize=8)
 axes[1].axis("off")
 
 plt.tight_layout()
 plt.show()
 ```
+  
 
+# Streamlit Dashboard
 
-## 3.2 Streamlit Dashboard
-Our dashboard is designed to dynamically show how changes in supply relates with disease prevalence, across different diseases and across counties with different starting supply levels.
+The dashboard is designed to dynamically show how changes in supply relates with disease prevalence — across different diseases and across counties with different starting supply levels.
+* Link: https://final-project-shuyan-ziye-9q4gvuq4kp8khmtpydn5eb.streamlit.app/
 
-We use OLS regression to quantify the relationship between disease burden and healthcare supply, which then feeds into the scenario simulations. For each disease, we estimate a linear relationship between county-level prevalence $y_i$ and the corresponding specialty physician supply $S_i$, controlling for observable county characteristics, adult population size (18+), hospital bed capacity per 10,000 adults, and median household income, to improve precision and reduce bias from observable differences across counties.
+* Method
+We use OLS regression to quantify the relationship between disease burden and healthcare supply, which then feeds into the scenario simulations. For each disease, we estimate a linear relationship between county-level prevalence $y_i$ and the corresponding specialty physician supply $S_i$, controlling for observable county characteristics — adult population size (18+), hospital bed capacity per 10,000 adults, and median household income — to improve precision and reduce bias from observable differences across counties.
 
+* How It Works
 On the left panel, policy makers can select from three disease type (selectbox) and change supply level of the six supply tiers (slider) we described earlier. The dashboard then dynamically updates: the estimated health prevalence for counties in the selected supply tier, and the overall population-weighted prevalence across all selected counties. This allows users to directly compare the expected direction and magnitude of impact from reallocating resources to counties at different starting supply levels.
 
-:::
-```{=latex}
-\noindent
-\begin{minipage}[t]{0.49\linewidth}\centering
-\includegraphics[width=\linewidth,height=1in,keepaspectratio]{5-1.jpg}
-\end{minipage}\hspace{0.002\linewidth}
-\begin{minipage}[t]{0.49\linewidth}\centering
-\includegraphics[width=\linewidth,height=1in,keepaspectratio]{5-2.jpg}
-\end{minipage}
-```
+# Key Findings
 
-### 4 Key Findings
-Disease burden and healthcare supply are both shaped by a wide range of factors: local economic conditions, environmental exposures, provider quality, and local governance, among others. It is unlikely that any single rule for reallocating resources works universally across all counties and diseases. Our goal here is not to establish causal conclusions between the two factors, but to give policy makers, such as those of NHSC, a tool to visualize tradeoffs: by adjusting supply levels and observing the predicted change in population-weighted prevalence, they can test different allocation scenarios and see where the expected impact is meaningful.
+Disease burden and healthcare supply are shaped by many factors, including local economic conditions, environmental exposures, provider quality, and institutional capacity. Because of this complexity, our analysis does not attempt to establish causal relationships between healthcare supply and disease prevalence. Instead, the dashboard serves as an exploratory simulation tool that allows policy makers, such as those at NHSC, to examine how reallocating healthcare resources across counties with different starting conditions may influence predicted disease prevalence.
 
-By adjusting the sliders and selectbox, it has also come to our notice that: for most supply tiers, higher supply is associated with lower predicted prevalence, but the magnitude of that association varies across tiers, suggesting the pattern is not uniform. Notably, medium-supply counties show the opposite. Our interpretation is as follows. 
+Across the three diseases, the simulated results suggest that the relationship between physician supply and predicted prevalence varies across supply tiers rather than following a single uniform pattern. In counties with very limited physician supply, increases in provider availability are often associated with reductions in predicted prevalence. In contrast, middle-supply counties sometimes show the opposite pattern, where increases in physician availability correspond with higher predicted prevalence. In higher-supply counties, the relationship tends to be weaker and more stable, with changes in predicted prevalence generally smaller than those observed in low-supply areas.
 
-* In \underline{low-supply} counties, the primary obstacle is access: patients with health conditions either cannot get care or get it too late. Supply increases in these areas could relate to improvements in primary care access and follow-up continuity likely translate more directly into better chronic disease management, making a measurable reduction in predicted prevalence likely. 
-* In \underline{high-supply} counties, additional resources can be associated with genuine health improvements through better established care coordination, multidisciplinary pathways, and chronic disease management programs, which is why predicted prevalence continues to decline as supply increases in these areas.
-* However, in \underline{medium-supply} counties, an increase in supply is more likely in connection with more screening, visits, and documentation and could surface cases that previously went undetected or unrecorded. This could push predicted prevalence upward. There may also be a patient concentration effect, where individuals from neighboring, resource-scarce areas begin seeking care in these counties, further inflating the observed disease burden.
+Several mechanisms could contribute to these patterns. In areas with very limited medical resources, increases in physician supply may improve access to care, earlier treatment, and continuity of disease management, which could contribute to lower observed prevalence. At the same time, increases in provider availability may also lead to more screening, diagnosis, and documentation, which can reveal cases that previously went undetected and therefore increase measured prevalence. The observed patterns likely reflect a combination of these mechanisms, and the underlying dynamics remain complex.
 
-Overall, this project highlights the geographic mismatch between where disease burden is highest and where medical supply actually exists. Rather than offering a definitive answer on where resources should go, we built an exploratory simulation tool to help policy makers think through allocation strategies and visualize the tradeoffs involved. We hope it offers a useful, data-informed perspective that can complement — rather than replace — programs like NHSC in their efforts to reach the most underserved communities.
-
-{{< pagebreak >}}
-
-
-
-
-
+Overall, these results suggest that the potential impact of additional healthcare supply depends strongly on a county’s initial level of medical resources. Rather than identifying a single optimal allocation rule, our project highlights the geographic mismatch between disease burden and healthcare supply and provides a tool that helps policy makers visualize tradeoffs when allocating limited healthcare resources. However, this analysis has limitations: the regression framework does not account for all possible determinants of disease prevalence, and factors such as patient mobility across counties or additional socioeconomic variables may also influence the observed patterns.
