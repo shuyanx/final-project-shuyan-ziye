@@ -50,10 +50,7 @@ Revisions Based on Comments after Presentation (March 3)
 
 Following feedback received after our March 3rd presentation, we made targeted improvements focused on readability and interpretability:
 - Visual consistency in regression/relationship plots: We applied uniform, consistent color coding across six supply tiers in our "disease prevalence - healthcare supply" figures and introduced clearer regression line displays, making it easier to observe the overall trend (disease prevalence tends to decrease as healthcare supply increases) and to detect potential nonlinear differences across tiers.
-- Enhanced map contrast: We adopted higher-contrast color schemes and cleaner map layouts to make spatial comparisons more immediately legible. We also added an interactive selector in the Streamlit map view to allow users to dynamically choose a physician supply tier, which highlights the corresponding counties on the map and reveals its disease prevalence with regional clustering patterns for the chosen disease.
-
-![alt text](image-1.png)
-
+- Enhanced map contrast: We adopted higher-contrast color schemes and cleaner map layouts to make spatial comparisons more immediately legible. We also added an interactive selector in the Streamlit map view (left column) to allow users to dynamically choose a physician supply tier, which highlights the corresponding counties on the map and reveals its disease prevalence with regional clustering patterns for the chosen disease.
 - Interpretive depth: In response to questions raised during the presentation, we expanded our discussion and interpretation of key findings in the write-up, providing additional context for the relationships observed in the data.
 
 To run the project locally, clone the repository to your laptop. Cd to the project folder, then run the preprocessing script first to download and generate the required data locally. 
