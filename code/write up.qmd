@@ -183,7 +183,7 @@ def download_income_data():
 # Load Data and Clean Data
 def build_data():
 
-    PROJECT_ROOT = Path(".")
+    PROJECT_ROOT = Path("..")
     
     health = pd.read_csv(
         PROJECT_ROOT / "data" / "Health.csv"
