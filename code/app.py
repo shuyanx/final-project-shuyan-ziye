@@ -9,12 +9,14 @@ import plotly.express as px
 from pathlib import Path
 from preprocessing import build_data
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 st.set_page_config(layout="wide")
 
 @st.cache_data(show_spinner=True)
 def load_health_county():
 
-    data_path = Path("data/cleaned_data.csv")
+    data_path = PROJECT_ROOT / "data" / "cleaned_data.csv"
 
     if not data_path.exists():
         build_data()
@@ -28,7 +30,7 @@ def load_health_county():
 @st.cache_data(show_spinner=True)
 def load_health_gis():
 
-    gis_path = Path("data/cleaned_data_gis.parquet")
+    gis_path = PROJECT_ROOT / "data" / "cleaned_data_gis.parquet"
 
     if not gis_path.exists():
         build_data()
