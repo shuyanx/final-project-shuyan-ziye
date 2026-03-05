@@ -1,9 +1,9 @@
-# Health Burden & Healthcare Resource Distribution
+# Disease Prevalence and Health Resource Distrubution in the US
 ## Does healthcare supply relate to disease prevalence across U.S. counties?
 Data and Programming II Final Project (Winter 2026)
 
 Team members:
-Shuyan Xin  Ziye Yang
+Shuyan Xin & Ziye Yang
 
 Qmd: PROJECT_ROOT / "code" / "write up.qmd"
 
@@ -21,30 +21,40 @@ Data Sources:
 
 After cleaning and merging the datasets using county identifiers as keys, we standardized key variables (e.g., normalized to adult population) to make comparisons across counties more intuitive and suitable for visualization and regression modeling.
 
-One practical challenge we encountered was that some raw data sources were too large to upload directly to GitHub. Rather than storing large files in the repository, we embedded the data acquisition step into our Python pipeline. When users run our \underline{preprocessing.py} script, it automatically searches for and downloads the required data from public sources, then performs all cleaning, merging, and lightweight output generation locally. This approach ensures that no oversized files stored in the repository; anyone who clones the project can reproduce the full data pipeline locally; and full reproducibility - the processing steps are transparent, consistent, and produce identical outputs.
+One practical challenge we encountered was that some raw data sources were too large to upload directly to GitHub. Rather than storing large files in the repository, we embedded the data acquisition step into our Python pipeline. When users run our preprocessing code chunk in the "write up.qmd", it automatically searches for and downloads the required data from public sources, then performs all cleaning, merging, and lightweight output generation locally. This approach ensures that no oversized files stored in the repository and improves reproducibility.
 
-Exploratory Analysis (Static Figures & Spatial Distribution)
-After cleaning and integrating the data, we conducted an initial exploratory analysis to describe the overall distributions of health burden and healthcare resource supply, as well as correlational patterns between the two. This produced several sets of static visualizations, including:
+
+Exploratory Analysis (Static Figures)
+
+After cleaning and integrating the data, we conducted an initial exploratory analysis to describe the overall distributions of health burden and healthcare resource supply. This produced several sets of static visualizations, including:
 - Distribution characteristics of disease prevalence and health supply at county level
 - Relationship between the two factors
 - Geographic distribution and regional clustering patterns
 
-A Note on Causality
-Through this process, we also recognized that the factors influencing health outcomes and resource distribution are deeply complex — economic development, demographic structure, detection rates, care-seeking behavior, and governance capacity may all operate simultaneously. Strict causal identification is therefore beyond the scope of this project. Rather than attempting to prescribe a single answer for "how resources should be allocated," we positioned our project as an interactive simulation tool: a policy sandbox that helps decision-makers quickly explore the direction and rough magnitude of changes under our data relationships and linear assumptions.
 
-Streamlit Policy Simulation Dashboard
-The core purpose of our Streamlit dashboard is to allow users (e.g., policymakers working on programs like NHSC) to scenario-test their own policy ideas interactively. Users can:
+Note on Causality
+
+Through this process, we also recognized that the factors influencing health outcomes and resource distribution are deeply complex. Economic development, demographic structure, detection rates, care-seeking behavior, and governance capacity may all operate simultaneously. Strict causal identification is  beyond the scope of this project. Rather than attempting to prescribe a single answer for "how resources should be allocated," we positioned our project as an interactive simulation tool: a policy sandbox that helps decision-makers quickly explore the direction and size of impacts of each policy set.
+
+
+Streamlit Dashboard
+
+The core purpose of our Streamlit dashboard is to allow users (e.g., policymakers on programs like NHSC) to test their own policy ideas interactively. Users can:
 - Select different disease cases via a selectbox menu
 - Adjust the magnitude of changes through slider across different healthcare supply tier counties
 - Select a physician supply group from a selectbox menu; and the map will locate and highlight the corresponding counties, using color intensity to display the disease prevalence distribution across those regions
 - View dynamically updated projections of how predicted disease prevalence shifts under selected conditions, including population-weighted aggregate outcomes
-In short, this dashboard functions as a policy sandbox: a tool for rapid comparison and intuition-building, not a substitute for causal evaluation nor a definate conclusion.
 
-Post-Presentation Revisions (March 3)
+
+Revisions Based on Comments after Presentation (March 3)
+
 Following feedback received after our March 3rd presentation, we made targeted improvements focused on readability and interpretability:
-- Visual consistency in regression/relationship plots: We applied uniform, consistent color coding across supply tiers in our "health prevalence vs. healthcare supply" figures and introduced clearer regression line displays, making it easier to observe the overall trend (disease prevalence tends to decrease as healthcare supply increases) and to detect potential nonlinear differences across tiers.
-- Enhanced map contrast: We adopted higher-contrast color schemes and cleaner map layouts to make spatial comparisons — such as high-burden/low-resource regions or cross-county resource gaps — more immediately legible. We also added an interactive selector in the Streamlit map view allowing users to dynamically choose a physician supply tier, which highlights the corresponding counties on the map and reveals its disease prevalence with regional clustering patterns for the chosen disease.
+- Visual consistency in regression/relationship plots: We applied uniform, consistent color coding across six supply tiers in our "disease prevalence - healthcare supply" figures and introduced clearer regression line displays, making it easier to observe the overall trend (disease prevalence tends to decrease as healthcare supply increases) and to detect potential nonlinear differences across tiers.
+- Enhanced map contrast: We adopted higher-contrast color schemes and cleaner map layouts to make spatial comparisons more immediately legible. We also added an interactive selector in the Streamlit map view (left column) to allow users to dynamically choose a physician supply tier, which highlights the corresponding counties on the map and reveals its disease prevalence with regional clustering patterns for the chosen disease.
 - Interpretive depth: In response to questions raised during the presentation, we expanded our discussion and interpretation of key findings in the write-up, providing additional context for the relationships observed in the data.
 
 To run the project locally, clone the repository to your laptop. Cd to the project folder, then run the preprocessing script first to download and generate the required data locally. 
-For Streamlit app: Once preprocessing is complete, launch the Streamlit app by running /underline{streamlit run app.py} in your terminal or use the [link](https://final-project-shuyan-ziye-g5wwnpknculjgrhma5qzpj.streamlit.app/) to interact with the dashboard and explore our findings.
+For Streamlit app: Once preprocessing is complete, launch the Streamlit app by running streamlit run app.py in your terminal or use [this link](https://final-project-shuyan-ziye-g5wwnpknculjgrhma5qzpj.streamlit.app/) to interact with the dashboard and explore our findings.
+
+
+Disclosure: All ideas in this README.md are our own; some wording in this file has been polished with AI tools assistance.
