@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import altair as alt
 import plotly.express as px
 from pathlib import Path
-from preprocessing import build_data
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -17,9 +17,6 @@ st.set_page_config(layout="wide")
 def load_health_county():
 
     data_path = PROJECT_ROOT / "data" / "cleaned_data.csv"
-
-    if not data_path.exists():
-        build_data()
 
     return pd.read_csv(
         data_path,
@@ -31,9 +28,6 @@ def load_health_county():
 def load_health_gis():
 
     gis_path = PROJECT_ROOT / "data" / "cleaned_data_gis.parquet"
-
-    if not gis_path.exists():
-        build_data()
 
     gdf = gpd.read_parquet(gis_path)
 
