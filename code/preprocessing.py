@@ -12,6 +12,7 @@ import numpy as np
 import time
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import warnings
 warnings.filterwarnings("ignore")
 alt.renderers.enable("png")
@@ -252,53 +253,39 @@ def build_data():
     )
 
     # Add Columns Needed
-    health_county["physicians_per10k"] = np.where(
-        health_county["physicians_total"] > 0,
+    health_county["physicians_per10k"] = (
         health_county["physicians_total"] /
-        health_county["TotalPop18plus"] * 10000,
-        np.nan
+        health_county["TotalPop18plus"] * 10000
     )
     
-    health_county["general_internal_med_per10k"] = np.where(
-        health_county["physicians_total"] > 0,
+    health_county["general_internal_med_per10k"] = (
         health_county["general_internal_med"] /
-        health_county["TotalPop18plus"] * 10000,
-        np.nan
+        health_county["TotalPop18plus"] * 10000
     )
     
-    health_county["cardiologists_per10k"] = np.where(
-        health_county["physicians_total"] > 0,
+    health_county["cardiologists_per10k"] = (
         health_county["cardiologists"] /
-        health_county["TotalPop18plus"] * 10000,
-        np.nan
+        health_county["TotalPop18plus"] * 10000
     )
     
-    health_county["psych_per10k"] = np.where(
-        health_county["physicians_total"] > 0,
+    health_county["psych_per10k"] = (
         health_county["psychiatrists"] /
-        health_county["TotalPop18plus"] * 10000,
-        np.nan
+        health_county["TotalPop18plus"] * 10000
     )
     
-    health_county["beds_per10k"] = np.where(
-        health_county["beds_total"] > 0,
+    health_county["beds_per10k"] = (
         health_county["beds_total"] /
-        health_county["TotalPop18plus"] * 10000,
-        np.nan
+        health_county["TotalPop18plus"] * 10000
     )
     
-    health_county["beds_acute_per10k"] = np.where(
-        health_county["beds_acute"] > 0,
+    health_county["beds_acute_per10k"] = (
         health_county["beds_acute"] /
-        health_county["TotalPop18plus"] * 10000,
-        np.nan
+        health_county["TotalPop18plus"] * 10000
     )
 
-    health_county["beds_icu_per10k"] = np.where(
-        health_county["beds_icu"] > 0,
+    health_county["beds_icu_per10k"] = (
         health_county["beds_icu"] /
-        health_county["TotalPop18plus"] * 10000,
-        np.nan
+        health_county["TotalPop18plus"] * 10000
     )
     
     health_county["pop_quintile"] = pd.qcut(
