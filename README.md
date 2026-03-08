@@ -1,53 +1,47 @@
-# Final Project
+# Disease Prevalence and Health Resource Distrubution in the US
+## Does healthcare supply relate to disease prevalence across U.S. counties?
+Data and Programming II Final Project (Winter 2026)
 
 Team members:
-Shuyan Xin  Ziye Yang
+Shuyan Xin & Ziye Yang
 
-Qmd:
+Qmd: PROJECT_ROOT / "code" / "write up.qmd"
 
-Streamlit dashboard:
+Streamlit dashboard: https://final-project-shuyan-ziye-g5wwnpknculjgrhma5qzpj.streamlit.app/
 
-# Health Burden & Healthcare Resource Distribution
-# Does healthcare supply relate to disease prevalence across U.S. counties?
-Data and Programming II Final Project (Spring 2025)
+## Following Revisions after Presentation
+We received constructive suggestions from Professor Ganong after the March 3 presentation, and we made improvements and clarifications accordingly.
+- Visual in relationship plot: We now use uniform color coding for six different supply tiers and introduced a clearer regression line to show a more obvious overall trend. 
+- Enhanced map color contrast: We now use higher-contrast colors to distinguish regions with different prevalence and supply levels on the map, making the patterns and conclusions clearer. The "YlOrRd" color scale we choose is commonly applied in public health research.
+- Streamlit map: We now add a dynamic and interactive selector in the map view to show the regional distribution of disease prevalence across different supply tier counties.
+- Clearer interpretations: In the write-up, we also now address several issues that were not fully resolved during the presentation. Including: possible explanations for different statistical distributions of the prevalence of different kinds of disease, the potential reasons of why higher healthcare supply may be associated with higher or lower observed prevalence, and what may partially explain why these associations vary across physician supply groups.
 
-These research questions emerged from a shared interest in health equity and the geographic distribution of medical resources. While searching for data, we encountered a county-level disease burden dataset capturing prevalence rates of various chronic conditions across different regions. This naturally led us to ask: do differences in regional health outcomes relate to the availability of healthcare resources?
 
-Building on this question, we incorporated a more policy-relevant dimension — healthcare workforce supply (e.g., specialist physician counts, healthcare capacity by county) — to examine whether a systematic relationship exists between health burden and resource supply. To make the analysis more complete and interpretable, we further introduced demographic and socioeconomic baseline variables (e.g., income, adult population size) that allow us to control for structural differences across counties and produce more robust, comparable results.
+## Introduction
+The research topic came from our shared interest of healthcare section. When searching for data, we found a set of county-level health burden data that captures the health rates of multiple chronic diseases across the US. Thus, we came up with our main question: what factors may affect the health level of different regions?
+
+Based on the question, we went through more database and finally focused our study on the relationship between disease prevalence and healthcare supply. To be more specific, health workforce supply, such as specialist physician counts, healthcare capacity (ICU beds) by county, etc. To further explore, we also introduced baseline variables, such as median income and county-level population (18+), so that the analysis could be more robust and comparable.
 
 Data Sources:
-- Disease Burden (Health Outcomes from [CDC](https://data.cdc.gov/browse?category=500+Cities+%26+Places&q=2025&sortBy=relevance&tags=places&pageSize=20)): County-level prevalence rates for various chronic conditions, serving as our dependent variables.
-- Healthcare Workforce Supply (from [HRSA](https://data.hrsa.gov/data/download?)): Physician supply by specialty and healthcare capacity metrics, organized into supply tiers by county.
-- Socioeconomic & Demographic Baselines(from [U.S. Census / ACS 5-year estimates](https://www.census.gov/en.html)): Income levels, adult population size, and related structural controls used to standardize cross-county comparisons.
+- Disease Burden (Health Rates from [CDC](https://data.cdc.gov/browse?category=500+Cities+%26+Places&q=2025&sortBy=relevance&tags=places&pageSize=20)): County-level prevalence rates for multiple chronic conditions, as well as adult population.
+- Healthcare Supply (from [HRSA](https://data.hrsa.gov/data/download?)): Overall physician supply, physician supply by specialty and healthcare capacity metrics, also at county level.
+- Baseline Variables (from [U.S. Census / ACS 5-year estimates](https://api.census.gov/data/2023/acs/acs5?get=NAME,B19013_001E&for=county:*)): Median income at county level as control.
+- Geographic Data (from [U.S. Census TIGER](https://www2.census.gov/geo/tiger/TIGER2025/COUNTY/tl_2025_us_county.zip)): County-level geographic boundary data.
 
-After cleaning and merging the datasets using county identifiers as keys, we standardized key variables (e.g., normalized to adult population) to make comparisons across counties more intuitive and suitable for visualization and regression modeling.
+Using county identifiers as keys, we processed the large-volume raw data and constructed a standardized dataset with baseline variables, preparing for more meaningful comparisons and helping rule out the influence of large-population counties.
 
-One practical challenge we encountered was that some raw data sources were too large to upload directly to GitHub. Rather than storing large files in the repository, we embedded the data acquisition step into our Python pipeline. When users run our \underline{preprocessing.py} script, it automatically searches for and downloads the required data from public sources, then performs all cleaning, merging, and lightweight output generation locally. This approach ensures that no oversized files stored in the repository; anyone who clones the project can reproduce the full data pipeline locally; and full reproducibility - the processing steps are transparent, consistent, and produce identical outputs.
+[!NOTE]
+- One challenge was that some of the raw data files were too large to upload directly to GitHub. We initially considered storing them in Box file, but later found a clearer solution: incorporating the data acquisition step directly into our pipeline. When running our code in the preprocessing chunk in final write up qmd, it automatically searches for and downloads the required data from public sources to the folder. Then user can perform cleaning and merging locally. This ensures that no oversized files stored in the repository and improves reproducibility. As a result, we only uploaded CDC data ("Health.csv") and HRSA data (include "AHRF2025hf.csv" and "AHRF2025hp.csv") to git, and two cleaned datasets generated after preprocessing to the repository.
+- Although the healthcare-related databases we used were updated in 2025, the observations are actually obtained in 2023, which are the latest available data we can get. To ensure the consistency, we use the median income of 2023. Gis information of county in 2023 and 2025 is the same, so we use the 2025 version.
 
-Exploratory Analysis (Static Figures & Spatial Distribution)
-After cleaning and integrating the data, we conducted an initial exploratory analysis to describe the overall distributions of health burden and healthcare resource supply, as well as correlational patterns between the two. This produced several sets of static visualizations, including:
-- Distribution characteristics of disease prevalence and health supply at county level
+Then we conducted an initial analysis to illustrate the overall patterns of health burden, healthcare resources, and their geographic distribution, providing a basic overview of the data. To be more specific: 
+- Basic patterns of disease prevalence and healthcare supply at county level
 - Relationship between the two factors
-- Geographic distribution and regional clustering patterns
+- Geographic distribution patterns or the two factors
 
-A Note on Causality
-Through this process, we also recognized that the factors influencing health outcomes and resource distribution are deeply complex — economic development, demographic structure, detection rates, care-seeking behavior, and governance capacity may all operate simultaneously. Strict causal identification is therefore beyond the scope of this project. Rather than attempting to prescribe a single answer for "how resources should be allocated," we positioned our project as an interactive simulation tool: a policy sandbox that helps decision-makers quickly explore the direction and rough magnitude of changes under our data relationships and linear assumptions.
+In the [Streamlit dashboard app](https://final-project-shuyan-ziye-6pkom6vbzap9avqyw3m3ek.streamlit.app/), our core purpose is to allow users (i.e., policymakers on programs like NHSC) to test their own policy ideas interactively, instead of showing the casual relationship. They can:
+- Select different disease types through a dropdown menu (select box)
+- Adjust the size and direction of additional healthcare supply through slider
+- Select physician supply group from a dropdown menu (select box); and the map will locate the corresponding counties and use certain color to show its disease prevalence
+- Dynamic view: the predicted disease prevalence for each tier and for whole population (population-weighed aggregated)
 
-Streamlit Policy Simulation Dashboard
-The core purpose of our Streamlit dashboard is to allow users (e.g., policymakers working on programs like NHSC) to scenario-test their own policy ideas interactively. Users can:
-- Select different disease cases via a selectbox menu
-- Adjust the magnitude of changes through slider across different healthcare supply tier counties
-- Select a physician supply group from a selectbox menu; and the map will locate and highlight the corresponding counties, using color intensity to display the disease prevalence distribution across those regions
-- View dynamically updated projections of how predicted disease prevalence shifts under selected conditions, including population-weighted aggregate outcomes
-In short, this dashboard functions as a policy sandbox: a tool for rapid comparison and intuition-building, not a substitute for causal evaluation nor a definate conclusion.
-
-Post-Presentation Revisions (March 3)
-Following feedback received after our March 3rd presentation, we made targeted improvements focused on readability and interpretability:
-- Visual consistency in regression/relationship plots: We applied uniform, consistent color coding across supply tiers in our "health prevalence vs. healthcare supply" figures and introduced clearer regression line displays, making it easier to observe the overall trend (disease prevalence tends to decrease as healthcare supply increases) and to detect potential nonlinear differences across tiers.
-- Enhanced map contrast: We adopted higher-contrast color schemes and cleaner map layouts to make spatial comparisons — such as high-burden/low-resource regions or cross-county resource gaps — more immediately legible. We also added an interactive selector in the Streamlit map view allowing users to dynamically choose a physician supply tier, which highlights the corresponding counties on the map and reveals its disease prevalence with regional clustering patterns for the chosen disease.
-- Interpretive depth: In response to questions raised during the presentation, we expanded our discussion and interpretation of key findings in the write-up, providing additional context for the relationships observed in the data.
-
-To run the project locally, clone the repository to your machine. Navigate to the project folder, then run the preprocessing script first to download and generate the required data locally. Once preprocessing is complete, launch the Streamlit app by running streamlit run app.py in your terminal and opening the generated local URL in your browser to interact with the dashboard and explore our findings.
-
-
-Disclosure: All ideas and analysis in this project are our own; language and phrasing were partly refined with the assistance of AI tools.
