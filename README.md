@@ -39,7 +39,7 @@ Then we conducted an initial analysis to illustrate the overall patterns of heal
 - Relationship between the two factors
 - Geographic distribution patterns or the two factors
 
-In the [Streamlit dashboard app](https://final-project-shuyan-ziye-g5wwnpknculjgrhma5qzpj.streamlit.app/), our core purpose is to allow users (i.e., policymakers on programs like NHSC) to test their own policy ideas interactively, instead of showing the casual relationship. They can:
+In the [Streamlit dashboard app](https://final-project-shuyan-ziye-6pkom6vbzap9avqyw3m3ek.streamlit.app/), our core purpose is to allow users (i.e., policymakers on programs like NHSC) to test their own policy ideas interactively, instead of showing the casual relationship. They can:
 - Select different disease types through a dropdown menu (select box)
 - Adjust the size and direction of additional healthcare supply through slider
 - Select physician supply group from a dropdown menu (select box); and the map will locate the corresponding counties and use certain color to show its disease prevalence
