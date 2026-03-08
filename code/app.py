@@ -107,7 +107,6 @@ df = df[
 
 df = df[
     (df[disease_var] > 0) &
-    (df["beds_per10k"] > 0) &
     (df["MedianIncome"] > 0) &
     (df["TotalPop18plus"] > 0)
 ].copy()
