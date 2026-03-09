@@ -2,12 +2,14 @@
 ## Does healthcare supply relate to disease prevalence across U.S. counties?
 Data and Programming II Final Project (Winter 2026)
 
-Team members:
+Team Members:
 Shuyan Xin & Ziye Yang
 
-Qmd: PROJECT_ROOT / "code" / "write up.qmd"
+Qmd: PROJECT_ROOT / "final_project.qmd"
 
-Streamlit dashboard: https://final-project-shuyan-ziye-npkcfwz4agxj899ccn8xak.streamlit.app/
+Git Repository: https://github.com/shuyanx/final-project-shuyan-ziye
+
+Streamlit Dashboard: https://final-project-shuyan-ziye-npkcfwz4agxj899ccn8xak.streamlit.app/
 
 ## Following Revisions after Presentation
 We received constructive suggestions from Professor Ganong after the March 3 presentation, and we made improvements and clarifications accordingly.
