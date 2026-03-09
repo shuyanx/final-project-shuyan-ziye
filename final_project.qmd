@@ -1,6 +1,6 @@
 ---
 title: "Data and Programming II: Final Project"
-author: "ShuyanXin (Github username: shuyanx & xin, Section2) & ZiyeYang(Github username: ziyey, Section3)"
+author: "ShuyanXin (Github username: shuyanx & xin, Section2) & ZiyeYang (Github username: ziyey, Section3)"
 date: "3/7/2026"
 
 format: 
@@ -1049,7 +1049,7 @@ Clear regional patterns are visible across the US. Regarding diseases, counties 
 %matplotlib inline
 
 # Geo Plots
-health_gis = gpd.read_parquet("../data/cleaned_data_gis.parquet")
+health_gis = gpd.read_parquet("data/derived-data/cleaned_data_gis.parquet")
 health_gis_proj = health_gis.to_crs(epsg=5070)
 
 health_gis_proj = health_gis_proj[
