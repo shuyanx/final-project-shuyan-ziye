@@ -8,6 +8,7 @@ Shuyan Xin & Ziye Yang
 Qmd: PROJECT_ROOT / "final_project.qmd"
 
 Git Repository: https://github.com/shuyanx/final-project-shuyan-ziye
+Following the project requirements, the final repository retains only the `main` branch. During development, we used five branches and multiple merges. The full development history can be viewed in the commit history.
 
 Streamlit Dashboard: https://final-project-shuyan-ziye-npkcfwz4agxj899ccn8xak.streamlit.app/
 
