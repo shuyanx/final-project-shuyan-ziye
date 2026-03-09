@@ -16,7 +16,7 @@ st.set_page_config(layout="wide")
 @st.cache_data(show_spinner=True)
 def load_health_county():
 
-    data_path = PROJECT_ROOT / "data" / "cleaned_data.csv"
+    data_path = PROJECT_ROOT / "data" / "derived-data" / "cleaned_data.csv"
 
     return pd.read_csv(
         data_path,
@@ -27,7 +27,7 @@ def load_health_county():
 @st.cache_data(show_spinner=True)
 def load_health_gis():
 
-    gis_path = PROJECT_ROOT / "data" / "cleaned_data_gis.parquet"
+    gis_path = PROJECT_ROOT / "data" / "derived-data" / "cleaned_data_gis.parquet"
 
     gdf = gpd.read_parquet(gis_path)
 
