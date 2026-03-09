@@ -113,18 +113,18 @@ def build_data():
     PROJECT_ROOT = Path("..")
     
     health = pd.read_csv(
-        PROJECT_ROOT / "data" / "Health.csv"
+        PROJECT_ROOT / "data" / "raw-data" / "Health.csv"
     )
 
     health_professional = pd.read_csv(
-        PROJECT_ROOT / "data" / "AHRF" / "AHRF2025hp.csv"
+        PROJECT_ROOT / "data" / "raw-data" / "AHRF" / "AHRF2025hp.csv"
     )
 
     health_facility = pd.read_csv(
-        PROJECT_ROOT / "data" / "AHRF" / "AHRF2025hf.csv"
+        PROJECT_ROOT / "data" / "raw-data" / "AHRF" / "AHRF2025hf.csv"
     )
 
-    shp_path = PROJECT_ROOT / "data" / "tl_2025_us_county.shp"
+    shp_path = PROJECT_ROOT / "data" / "raw-data" / "tl_2025_us_county.shp"
 
     # Only download shapefile if it does not exist
     if not shp_path.exists():
@@ -365,7 +365,7 @@ def build_data():
     )
     
     
-    output = PROJECT_ROOT / "data" / "cleaned_data.csv"
+    output = PROJECT_ROOT / "data" / "derived-data" / "cleaned_data.csv"
     output.parent.mkdir(parents=True, exist_ok=True)
     health_county.to_csv(output, index=False)
 
@@ -374,7 +374,7 @@ def build_data():
     float_cols = health_gis.select_dtypes(include="float64").columns
     health_gis[float_cols] = health_gis[float_cols].astype("float32")
 
-    gis_output = PROJECT_ROOT / "data" / "cleaned_data_gis.parquet"
+    gis_output = PROJECT_ROOT / "data" / "derived-data" / "cleaned_data_gis.parquet"
     health_gis.to_parquet(gis_output, index=False, compression="zstd")
 
     print("Derived datasets created.")
