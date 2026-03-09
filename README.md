@@ -7,7 +7,7 @@ Shuyan Xin & Ziye Yang
 
 Qmd: PROJECT_ROOT / "code" / "write up.qmd"
 
-Streamlit dashboard: https://final-project-shuyan-ziye-6pkom6vbzap9avqyw3m3ek.streamlit.app/
+Streamlit dashboard: https://final-project-shuyan-ziye-npkcfwz4agxj899ccn8xak.streamlit.app/
 
 ## Following Revisions after Presentation
 We received constructive suggestions from Professor Ganong after the March 3 presentation, and we made improvements and clarifications accordingly.
